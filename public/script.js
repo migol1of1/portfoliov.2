@@ -338,24 +338,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 50);
     }
   }
-
-  btnNext.addEventListener("click", () => {
-    if (!isTransitioning && !typingInProgress) {
-      currentIndex = (currentIndex + 1) % sections.length;
-      showSection(currentIndex);
-      updateButtonText();
-    }
-  });
-
-  btnPrev.addEventListener("click", () => {
-    if (!isTransitioning && !typingInProgress) {
-      currentIndex = (currentIndex - 1 + sections.length) % sections.length;
-      showSection(currentIndex);
-      updateButtonText();
-    }
-  });
-
-  showSection(currentIndex);
 });
 
 //skills section
@@ -591,109 +573,245 @@ document.addEventListener("click", (e) => {
 });
 
 //contact section
-const messageTextarea = document.getElementById("message");
-const charCount = document.getElementById("charCount");
-
-messageTextarea.addEventListener("input", function () {
-  const currentLength = this.value.length;
-  charCount.textContent = `${currentLength}/500`;
-
-  if (currentLength > 450) {
-    charCount.classList.add("text-red-400");
-    charCount.classList.remove("text-gray-400");
-  } else {
-    charCount.classList.add("text-gray-400");
-    charCount.classList.remove("text-red-400");
-  }
-});
-
-const contactForm = document.getElementById("contactForm");
-const formMessage = document.getElementById("formMessage");
-
-contactForm.addEventListener("submit", async function (e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-  const name = formData.get("name");
-  const email = formData.get("email");
-  const phone = formData.get("phone");
-  const message = formData.get("message");
-
-  if (!name || !email || !message) {
-    showMessage("Please fill in all required fields.", "error");
-    return;
-  }
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("contactForm");
+  const messageTextarea = document.getElementById("message");
+  const charCount = document.getElementById("charCount");
+  const formMessage = document.getElementById("formMessage");
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    showMessage("Please enter a valid email address.", "error");
-    return;
-  }
+  const phoneRegex = /^\+63\d{10}$/;
 
-  const submitButton = this.querySelector('button[type="submit"]');
-  const originalText = submitButton.textContent;
+  function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const existingError = field.parentNode.querySelector(".error-message");
 
-  submitButton.textContent = "Sending...";
-  submitButton.disabled = true;
+    if (existingError) {
+      existingError.remove();
+    }
 
-  try {
-    const response = await fetch("http://localhost:5000/api/contact", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: name,
-        email: email,
-        phone: phone,
-        message: message,
-      }),
-    });
+    if (message) {
+      field.classList.add(
+        "border-red-500",
+        "focus:ring-red-500",
+        "focus:border-red-500"
+      );
+      field.classList.remove(
+        "border-gray-300",
+        "focus:ring-blue-500",
+        "focus:border-blue-500"
+      );
 
-    const result = await response.json();
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "mt-1 text-sm text-red-500 error-message";
+      errorDiv.style.color = "#ef4444";
+      errorDiv.style.fontSize = "0.875rem";
+      errorDiv.style.marginTop = "0.25rem";
 
-    if (response.ok) {
-      showMessage(result.message || "Message sent successfully!", "success");
-      this.reset();
-      charCount.textContent = "0/500";
+      errorDiv.textContent = message;
+      field.parentNode.appendChild(errorDiv);
+      field.parentNode.appendChild(errorDiv);
     } else {
-      showMessage(
-        result.error || "Failed to send message. Please try again.",
-        "error"
+      field.classList.remove(
+        "border-red-500",
+        "focus:ring-red-500",
+        "focus:border-red-500"
+      );
+      field.classList.add(
+        "border-gray-300",
+        "focus:ring-blue-500",
+        "focus:border-blue-500"
       );
     }
-  } catch (error) {
-    console.error("Error:", error);
-    showMessage("Please check your connection and try again.", "error");
-  } finally {
-    submitButton.textContent = originalText;
-    submitButton.disabled = false;
   }
-});
 
-function showMessage(text, type) {
-  formMessage.textContent = text;
-  formMessage.className = `p-4 rounded-lg text-center font-medium ${
-    type === "success"
-      ? "bg-green-100 text-green-800 border border-green-200"
-      : "bg-red-100 text-red-800 border border-red-200"
-  }`;
-  formMessage.classList.remove("hidden");
+  function clearAllErrors() {
+    const errorMessages = document.querySelectorAll(".error-message");
+    errorMessages.forEach((error) => error.remove());
 
-  setTimeout(() => {
+    const fields = ["name", "email", "phone", "message"];
+    fields.forEach((fieldId) => {
+      const field = document.getElementById(fieldId);
+      field.classList.remove(
+        "border-red-500",
+        "focus:ring-red-500",
+        "focus:border-red-500"
+      );
+      field.classList.add(
+        "border-gray-300",
+        "focus:ring-blue-500",
+        "focus:border-blue-500"
+      );
+    });
+  }
+
+  function showFormMessage(message, isError = false) {
+    formMessage.className = `p-4 font-medium text-center rounded-lg ${
+      isError
+        ? "bg-red-100 text-red-700 border border-red-300"
+        : "bg-green-100 text-green-700 border border-green-300"
+    }`;
+    formMessage.textContent = message;
+    formMessage.classList.remove("hidden");
+  }
+
+  function hideFormMessage() {
+    setTimeout(() => {
+      formMessage.classList.add("hidden");
+    }, 3000);
+  }
+
+  function setLoadingState(isLoading) {
+    const submitButton = document.querySelector('button[type="submit"]');
+
+    if (isLoading) {
+      submitButton.disabled = true;
+      submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sending...
+            `;
+      submitButton.classList.add("opacity-75", "cursor-not-allowed");
+    } else {
+      submitButton.disabled = false;
+      submitButton.textContent = "Send Message";
+      submitButton.classList.remove("opacity-75", "cursor-not-allowed");
+    }
+  }
+
+  function validateForm(formData) {
+    const errors = {};
+
+    if (!formData.name) {
+      errors.name = "Name is required";
+    }
+
+    if (!formData.email) {
+      errors.email = "Email is required";
+    } else if (!emailRegex.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      errors.phone =
+        "Phone number must be in format +63XXXXXXXXXX (11 digits total)";
+    }
+
+    if (!formData.message) {
+      errors.message = "Message is required";
+    } else if (formData.message.length > 200) {
+      errors.message = "Message must be 200 characters or less";
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
+  }
+
+  messageTextarea.addEventListener("input", function () {
+    const currentLength = this.value.length;
+    charCount.textContent = `${currentLength}/200`;
+
+    if (currentLength > 200) {
+      charCount.classList.add("text-red-500");
+      charCount.classList.remove("text-gray-400");
+    } else {
+      charCount.classList.remove("text-red-500");
+      charCount.classList.add("text-gray-400");
+    }
+  });
+
+  const phoneInput = document.getElementById("phone");
+  phoneInput.addEventListener("input", function () {
+    let value = this.value.replace(/\D/g, "");
+
+    if (value.startsWith("63")) {
+      value = "+" + value;
+    } else if (value.startsWith("9") && value.length <= 10) {
+      value = "+63" + value;
+    } else if (!value.startsWith("+63") && value.length > 0) {
+      value = "+63" + value;
+    }
+
+    if (value.length > 13) {
+      value = value.substring(0, 13);
+    }
+
+    this.value = value;
+  });
+
+  ["name", "email", "phone", "message"].forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    field.addEventListener("input", function () {
+      showFieldError(fieldId, "");
+    });
+  });
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    clearAllErrors();
     formMessage.classList.add("hidden");
-  }, 5000);
-}
 
-const phoneInput = document.getElementById("phone");
-phoneInput.addEventListener("input", function (e) {
-  let value = e.target.value.replace(/\D/g, "");
-  if (value.startsWith("63")) {
-    value = "+" + value;
-  } else if (value.startsWith("0")) {
-    value = "+63" + value.substring(1);
-  } else if (value.length > 0 && !value.startsWith("+")) {
-    value = "+63" + value;
-  }
-  e.target.value = value;
+    const formData = {
+      name: document.getElementById("name").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      message: document.getElementById("message").value.trim(),
+    };
+
+    const validation = validateForm(formData);
+
+    if (!validation.isValid) {
+      Object.keys(validation.errors).forEach((field) => {
+        showFieldError(field, validation.errors[field]);
+      });
+      showFormMessage("Please fill out all the fields correctly!", true);
+      hideFormMessage();
+      return;
+    }
+
+    setLoadingState(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.warn("Invalid JSON in response:", jsonError);
+      }
+
+      if (response.ok) {
+        showFormMessage("Message sent successfully!");
+        form.reset();
+        charCount.textContent = "0/200";
+      } else {
+        if (result?.details) {
+          Object.keys(result.details).forEach((field) => {
+            showFieldError(field, result.details[field]);
+          });
+          showFormMessage("Please correct the highlighted fields.", true);
+        } else {
+          showFormMessage(result?.error || "Something went wrong.", true);
+        }
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      showFormMessage("Network error. Please try again.", true);
+    }
+
+    setLoadingState(false);
+    hideFormMessage();
+  });
 });
