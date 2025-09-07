@@ -695,8 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (formData.phone && !phoneRegex.test(formData.phone)) {
-      errors.phone =
-        "Phone number must be in format +63XXXXXXXXXX (11 digits total)";
+      errors.phone = "Must be 11 digits!";
     }
 
     if (!formData.message) {
