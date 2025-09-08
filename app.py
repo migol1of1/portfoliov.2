@@ -12,7 +12,7 @@ app = Flask(__name__,
            template_folder='public', 
            static_folder='static',   
            static_url_path='')      
-CORS(app)
+CORS(app, origins=["https://miguel-san-pedro-portfolio.onrender.com"])
 
 MANILA_OFFSET = timedelta(hours=8)
 
