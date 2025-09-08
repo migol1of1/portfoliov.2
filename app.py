@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -158,6 +158,14 @@ def not_found(error):
 @app.errorhandler(405)
 def method_not_allowed(error):
     return jsonify({'error': 'Method not allowed'}), 405
+
+@app.route('/output.css')
+def serve_css():
+    return send_from_directory('public', 'output.css')
+
+@app.route('/script.js')  
+def serve_js():
+    return send_from_directory('public', 'script.js')
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
