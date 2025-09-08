@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, 
+           template_folder='public', 
+           static_folder='public',   
+           static_url_path='')      
 CORS(app)
 
 MANILA_OFFSET = timedelta(hours=8)
@@ -57,6 +60,11 @@ def validate_contact_data(data):
         errors['phone'] = 'Phone number must be in format +63XXXXXXXXXX (11 digits total)'
     
     return errors
+
+@app.route('/')
+def index():
+    """Main page"""
+    return render_template('index.html')
 
 @app.route('/api/contact', methods=['POST'])
 def submit_contact():
