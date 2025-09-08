@@ -341,238 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 //skills section
-const skillTitle = document.getElementById("skill-title");
-const skillItems = document.querySelectorAll("[data-skill]");
-
-skillItems.forEach((item) => {
-  item.addEventListener("mouseenter", () => {
-    skillTitle.textContent = item.getAttribute("data-skill");
-    skillTitle.classList.remove("opacity-0");
-    skillTitle.classList.add("opacity-100");
-  });
-  item.addEventListener("mouseleave", () => {
-    skillTitle.classList.remove("opacity-100");
-    skillTitle.classList.add("opacity-0");
-  });
-});
-
-//projects section
-const introContent = document.getElementById("introContent");
-const wlsContent = document.getElementById("wlsContent");
-const stbContent = document.getElementById("stbContent");
-const btContent = document.getElementById("btContent");
-const rpiContent = document.getElementById("rpiContent");
-
-const buttonContainer = document.querySelector(".grid");
-const projectsTitle = document.getElementById("projectsTitle");
-
-const projectMap = {
-  btnProject1: wlsContent,
-  btnProject2: stbContent,
-  btnProject3: btContent,
-  btnProject4: rpiContent,
-};
-
-let isTransitioning = false;
-function startTransition() {
-  isTransitioning = true;
-  setTimeout(() => {
-    isTransitioning = false;
-  }, 800);
-}
-
-function hideAllContent() {
-  [introContent, wlsContent, stbContent, btContent, rpiContent].forEach(
-    (content) => {
-      if (!content.classList.contains("hidden")) {
-        content.classList.remove("opacity-100");
-        content.classList.add("opacity-0");
-        setTimeout(() => {
-          content.classList.add("hidden");
-        }, 700);
-      }
-    }
-  );
-}
-
-function hideButtons() {
-  if (!buttonContainer.classList.contains("hidden")) {
-    buttonContainer.classList.remove("opacity-100");
-    buttonContainer.classList.add("opacity-0");
-    setTimeout(() => {
-      buttonContainer.classList.add("hidden");
-    }, 700);
-  }
-}
-
-function showButtons() {
-  setTimeout(() => {
-    buttonContainer.classList.remove("hidden");
-    setTimeout(() => {
-      buttonContainer.classList.remove("opacity-0");
-      buttonContainer.classList.add("opacity-100");
-    }, 50);
-  }, 700);
-}
-
-function showProjectsTitle() {
-  setTimeout(() => {
-    projectsTitle.classList.remove("hidden");
-    setTimeout(() => {
-      projectsTitle.classList.remove("opacity-0");
-      projectsTitle.classList.add("opacity-100");
-    }, 50);
-  }, 700);
-}
-
-function showContent(targetContent) {
-  setTimeout(() => {
-    targetContent.classList.remove("hidden");
-    setTimeout(() => {
-      targetContent.classList.remove("opacity-0");
-      targetContent.classList.add("opacity-100");
-    }, 50);
-  }, 700);
-}
-
-function resetButtonStyles() {
-  Object.keys(projectMap).forEach((id) => {
-    const button = document.getElementById(id);
-    if (button) {
-      button.classList.remove("bg-blue-100", "border-blue-400");
-      button.classList.add("hover:bg-blue-50");
-    }
-  });
-}
-
-function setActiveButton(button) {
-  resetButtonStyles();
-  if (button) {
-    button.classList.add("bg-blue-100", "border-blue-400");
-    button.classList.remove("hover:bg-blue-50");
-  }
-}
-
-const mainImage = document.getElementById("main-project-image");
-const defaultMainImageSrc = mainImage ? mainImage.src : "";
-let lastBlankThumbnail = null;
-
-function swapImages(clickedThumbnail) {
-  if (mainImage && clickedThumbnail) {
-    mainImage.style.transition = "opacity 0.3s ease";
-    mainImage.style.opacity = "0";
-
-    setTimeout(() => {
-      if (lastBlankThumbnail && lastBlankThumbnail !== clickedThumbnail) {
-        const originalSrc = lastBlankThumbnail.getAttribute("data-original");
-        if (originalSrc) {
-          lastBlankThumbnail.src = originalSrc;
-          lastBlankThumbnail.classList.remove(
-            "pointer-events-none",
-            "opacity-0"
-          );
-        }
-      }
-
-      const newMainSrc = clickedThumbnail.src;
-      mainImage.src = newMainSrc;
-
-      if (!clickedThumbnail.getAttribute("data-original")) {
-        clickedThumbnail.setAttribute("data-original", newMainSrc);
-      }
-
-      clickedThumbnail.src = "";
-      clickedThumbnail.classList.add("pointer-events-none", "opacity-0");
-      lastBlankThumbnail = clickedThumbnail;
-
-      setTimeout(() => {
-        mainImage.style.opacity = "1";
-      }, 50);
-    }, 300);
-  }
-}
-
-function resetMainImage() {
-  if (mainImage) {
-    mainImage.style.transition = "opacity 0.3s ease";
-    mainImage.style.opacity = "0";
-
-    setTimeout(() => {
-      mainImage.src = defaultMainImageSrc;
-
-      setTimeout(() => {
-        mainImage.style.opacity = "1";
-      }, 50);
-    }, 300);
-  }
-
-  if (lastBlankThumbnail) {
-    const originalSrc = lastBlankThumbnail.getAttribute("data-original");
-    if (originalSrc) {
-      lastBlankThumbnail.src = originalSrc;
-      lastBlankThumbnail.classList.remove("pointer-events-none", "opacity-0");
-    }
-    lastBlankThumbnail = null;
-  }
-}
-
-function returnToIntro() {
-  if (isTransitioning) return;
-  startTransition();
-  hideAllContent();
-  showContent(introContent);
-  showButtons();
-  showProjectsTitle();
-  resetButtonStyles();
-  resetMainImage();
-}
-
-buttonContainer.addEventListener("click", (e) => {
-  if (isTransitioning) return;
-  const button = e.target.closest("button");
-  if (button && projectMap[button.id]) {
-    startTransition();
-    const targetContent = projectMap[button.id];
-    hideAllContent();
-    hideButtons();
-    showContent(targetContent);
-    setActiveButton(button);
-  }
-});
-
-document.addEventListener("click", (e) => {
-  if (isTransitioning) return;
-
-  if (e.target.classList.contains("thumbnail-image")) {
-    startTransition();
-    const projectId = e.target.getAttribute("data-project");
-    if (projectId) {
-      swapImages(e.target);
-      const targetContent = document.getElementById(projectId);
-      if (targetContent) {
-        hideAllContent();
-        showContent(targetContent);
-        const buttonId = Object.keys(projectMap).find(
-          (key) => projectMap[key] === targetContent
-        );
-        if (buttonId) {
-          const button = document.getElementById(buttonId);
-          if (button) {
-            setActiveButton(button);
-          }
-        }
-      }
-    }
-    return;
-  }
-
-  if (e.target.closest(".back-to-projects")) {
-    returnToIntro();
-    return;
-  }
-});
-
-//contact section
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("contactForm");
   const messageTextarea = document.getElementById("message");
@@ -581,6 +349,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\+63\d{10}$/;
+
+  const API_CONFIG = {
+    development: "http://localhost:5000",
+    production: "https://portfoliov-2.onrender.com",
+  };
+
+  const isDevelopment =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+  const API_BASE_URL = isDevelopment
+    ? API_CONFIG.development
+    : API_CONFIG.production;
+
+  console.log(`Environment: ${isDevelopment ? "Development" : "Production"}`);
+  console.log(`API URL: ${API_BASE_URL}`);
 
   function showFieldError(fieldId, message) {
     const field = document.getElementById(fieldId);
@@ -609,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
       errorDiv.style.marginTop = "0.25rem";
 
       errorDiv.textContent = message;
-      field.parentNode.appendChild(errorDiv);
       field.parentNode.appendChild(errorDiv);
     } else {
       field.classList.remove(
@@ -776,7 +558,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setLoadingState(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
