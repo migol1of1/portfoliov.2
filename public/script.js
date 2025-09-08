@@ -791,7 +791,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const response = await fetch(
-        "https://miguel-san-pedro-portfolio.onrender.com",
+        "https://miguel-san-pedro-portfolio.onrender.com/api/contact",
         {
           method: "POST",
           headers: {
