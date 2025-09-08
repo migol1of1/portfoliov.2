@@ -338,6 +338,20 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 50);
     }
   }
+  btnPrev.addEventListener("click", () => {
+    if (!isTransitioning && !typingInProgress) {
+      currentIndex = Math.max(0, currentIndex - 1);
+      showSection(currentIndex);
+    }
+  });
+
+  btnNext.addEventListener("click", () => {
+    if (!isTransitioning && !typingInProgress) {
+      currentIndex = Math.min(sections.length - 1, currentIndex + 1);
+      showSection(currentIndex);
+    }
+  });
+  showSection(0);
 });
 
 //skills section
